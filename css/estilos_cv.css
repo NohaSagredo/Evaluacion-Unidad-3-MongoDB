@@ -1,0 +1,72 @@
+body{
+    background-color: rgb(192, 199, 204);
+    padding: 10px;
+}
+
+/* p{
+    color: blue;
+} */
+
+#hab_blandas{
+    list-style:square;
+}
+
+/* .lista{    
+    color: rebeccapurple    ;
+} */
+
+/* .nombre_personal{
+    border: solid black 1px;
+    margin: 25px;
+    padding: 25px;
+} */
+
+.imagen_superior{
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+}
+
+.parrafo_extra{
+    display: none;
+}
+
+.boton1{
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: rgb(3, 63, 100);
+    border-radius: 5px;
+    color: white;
+}
+
+.icono{
+    font-size: 25px;
+}
+
+.btn1{
+    border-radius: 5px;
+}
+
+.btn2{
+    padding: 10px;
+}
+
+.btn3{
+    background-color: chartreuse;
+}
+
+.btn4{
+    color: rgb(92, 58, 214);
+}
+
+.btn5{
+    font-weight: bold;
+}
+
+.btn_generico{
+    border-radius: 5px;
+    padding: 10px;
+    background-color: chartreuse;
+    color: rgb(92, 58, 214);
+    font-weight: bold;
+}

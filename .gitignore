@@ -1,0 +1,9 @@
+node_modules/
+backend/node_modules/
+backend/uploads/*
+!backend/uploads/.gitkeep
+.gemini/
+.agents/
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <title>Curriculum Vitae Rodrigo Peña S.</title>
+</head>
+<body>
+
+    <div class="cv-wrapper">
+
+        <header>
+            <div>
+                <a href="https://github.com/NohaSagredo">
+                    <img src="https://avatars.githubusercontent.com/u/167447116?v=4" alt="Foto de perfil" class="foto-perfil">
+                </a>
+            </div>
+            <div class="datos-principales">
+                <h1 id="cv_nombre">Rodrigo Peña S.</h1>
+                <p id="cv_titulo">Ingeniero en Ciberseguridad</p>
+            </div>
+        </header>
+
+        <main>
+            
+            <aside>
+                <section class="datos-personales" id="sec_datos_personales" style="margin-bottom: 20px; border-bottom: 1.5px solid rgba(234, 57, 184, 0.4); padding-bottom: 15px;">
+                    <h2>Datos Personales</h2>
+                    <ul style="list-style-type: none; padding-left: 0; color: #fff; line-height: 1.6;">
+                        <li><strong>RUN:</strong> <span id="cv_run">-</span></li>
+                        <li><strong>Nacimiento:</strong> <span id="cv_nacimiento">-</span></li>
+                        <li><strong>Nacionalidad:</strong> <span id="cv_nacionalidad">-</span></li>
+                        <li><strong>Género:</strong> <span id="cv_genero">-</span></li>
+                        <li id="li_direccion" style="display: none;"><strong>Dirección:</strong> <span id="cv_direccion">-</span></li>
+                    </ul>
+                </section>
+
+                <section class="tecnologias">
+                    <h2>Tecnologías en las que he puesto mis manos</h2>
+                    <ul>
+                        <li>HTML5</li>
+                        <li>CSS3</li>
+                        <li>JavaScript</li>
+                        <li>Python</li>
+                        <li>React</li>
+                        <li>Node.js</li>
+                        <li>Git</li>
+                        <li>GitHub</li>
+                        <li>Docker</li>
+                        <li>AWS</li>
+                        <li>Azure</li>
+                        <li>Google Cloud</li>
+                        <li>Linux</li>
+                        <li>Windows</li>
+                        <li>MacOS</li>
+                        <li>Android</li>
+                        <li>iOS</li>
+                        <li>MongoDB</li>
+                        <li>MySQL</li>
+                        <li>Oracle</li>
+                        <li>SQL Server</li>
+                    </ul>
+                </section>
+
+                <section class="cursos">
+                    <h2>Cursos</h2>
+                    <ul>
+                        <li>Frontend Developer</li>
+                        <li>Backend Developer</li>
+                        <li>Full Stack Developer</li>
+                        <li>Ciberseguridad</li>
+                        <li>Innovación y Emprendimiento</li>
+                        <li>Inglés</li>
+                    </ul>
+                </section>
+
+                <section class="certificaciones">
+                    <h2>Certificaciones</h2>
+                    <ul>
+                        <li>Inglés C1</li>
+                        <li>Certificación 2.</li>
+                    </ul>
+                </section>
+            </aside>
+
+            <section class="contenido-derecho">
+                <article class="academicos">
+                    <h2>Antecedentes Académicos</h2>
+                    <ul>
+                        <li>Egresado 4º medio Colegio Montessori Temuco</li>
+                        <li>Estudiante de Ingeniería en Ciberseguridad Instituto Profesional Inacap Temuco</li>
+                    </ul>
+                </article>
+
+                <article class="laborales">
+                    <h2>Antecedentes Laborales</h2>
+                    <ul>
+                        <li>Camarero Pronto Italia</li>
+                        <li>Bodeguero Importadora Frutas y Verduras L.T.Y</li>
+                        <li>Reponedor TodoBarato</li>
+                    </ul>
+                </article>
+
+                <article class="galeria-profesional">
+                    <h2>Entorno de Trabajo</h2>
+                    <div class="image-container">
+                        <img src="assets/workspace.png" alt="Espacio de trabajo Ciberseguridad" class="img-proyect">
+                    </div>
+                </article>
+            </section>
+
+        </main>
+
+        <footer>
+            <div class="contacto-item">
+                <img src="assets/email.png" alt="Email" class="footer-icon">
+                <p id="cv_email">r.p.sagredo@gmail.com</p>
+            </div>
+
+            <div class="contacto-item">
+                <img src="assets/phone.png" alt="Teléfono" class="footer-icon">
+                <p id="cv_telefono">+56 9 3579 3544</p>
+            </div>
+
+            <div class="contacto-item">
+                <a href="https://github.com/NohaSagredo" target="_blank" class="contacto-link">
+                    <img src="assets/github.png" alt="GitHub" class="footer-icon">
+                    <p>github.com/NohaSagredo</p>
+                </a>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const run = urlParams.get("run");
+        
+        if (run) {
+            fetch(`http://localhost:3000/usuarios?run=${encodeURIComponent(run)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Error al consultar datos.");
+                    return res.json();
+                })
+                .then(usuarios => {
+                    if (usuarios && usuarios.length > 0) {
+                        const user = usuarios[0];
+                        
+                        // Modificar datos en el DOM
+                        document.getElementById("cv_nombre").textContent = user.nombre;
+                        document.getElementById("cv_email").textContent = user.correo;
+                        document.getElementById("cv_telefono").textContent = user.telefono;
+                        
+                        document.getElementById("cv_run").textContent = user.run;
+                        document.getElementById("cv_nacionalidad").textContent = user.nacionalidad;
+                        document.getElementById("cv_genero").textContent = user.genero;
+                        
+                        // Formatear fecha de nacimiento
+                        if (user.fechaNacimiento) {
+                            const date = new Date(user.fechaNacimiento);
+                            const dia = String(date.getUTCDate()).padStart(2, '0');
+                            const mes = String(date.getUTCMonth() + 1).padStart(2, '0');
+                            const anio = date.getUTCFullYear();
+                            document.getElementById("cv_nacimiento").textContent = `${dia}/${mes}/${anio}`;
+                        }
+                        
+                        if (user.nacionalidad === "Extranjera" && user.direccion) {
+                            document.getElementById("cv_direccion").textContent = user.direccion;
+                            document.getElementById("li_direccion").style.display = "block";
+                        } else {
+                            document.getElementById("li_direccion").style.display = "none";
+                        }
+                        
+                        // Modificar título profesional si existe (opcional)
+                        const titleEl = document.getElementById("cv_titulo");
+                        if (titleEl) {
+                            titleEl.textContent = user.nacionalidad === "Extranjera" ? "Profesional Extranjero" : "Profesional Chileno";
+                        }
+                        
+                        // Incrustar PDF del Curriculum Vitae original
+                        if (user.curriculum) {
+                            const pdfViewerDiv = document.createElement("div");
+                            pdfViewerDiv.style.marginTop = "40px";
+                            pdfViewerDiv.style.borderTop = "2px solid #ea39b8";
+                            pdfViewerDiv.style.paddingTop = "20px";
+                            pdfViewerDiv.innerHTML = `
+                                <h2 style="color: #32fbe2; margin-bottom: 15px; font-size: 1.5rem;">Documento PDF de Currículum Adjunto</h2>
+                                <div style="height: 600px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(234, 57, 184, 0.4);">
+                                    <embed src="http://localhost:3000/uploads/${user.curriculum}" type="application/pdf" width="100%" height="100%" />
+                                </div>
+                            `;
+                            document.querySelector(".cv-wrapper").appendChild(pdfViewerDiv);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al cargar currículum dinámico:", err);
+                });
+        }
+    });
+    </script>
+
+</body>
+</html>
