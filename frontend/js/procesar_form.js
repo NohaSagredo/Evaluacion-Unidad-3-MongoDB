@@ -1,539 +1,326 @@
-const EXTENSIONES_PERMITIDAS = ['pdf'];
+/**
+ * ==========================================================================
+ * Evaluación Unidad 3 - Lógica de Validación y DOM del Formulario (procesar_form.js)
+ * ==========================================================================
+ */
 
-const CONFIG_FORMULARIO = {
-    nombreMinLargo: 3,
-    passMinLargo: 8,
-    passMaxLargo: 12
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("registrationForm");
-    const inputNombre = document.getElementById("input_nombre");
-    const inputRut = document.getElementById("input_rut");
-    const inputFecha = document.getElementById("input_fecha");
-    const inputCv = document.getElementById("input_cv");
-    const inputEmail = document.getElementById("input_email");
-    const selectGenero = document.getElementById("select_genero");
-    
-    // Nuevos campos
-    const inputTelefono = document.getElementById("input_telefono");
-    const selectNacionalidad = document.getElementById("select_nacionalidad");
-    const inputDireccion = document.getElementById("input_direccion");
-    const checkTerminos = document.getElementById("check_terminos");
-    const checkInteres = document.getElementById("check_interes");
-
-    const inputContrasena = document.getElementById("input_contrasena");
-    const inputConfirmContrasena = document.getElementById("input_confirm_contrasena");
-
-    // Formateador y validador interactivo de RUT
-    inputRut.addEventListener("input", (e) => {
-        let cursorPosition = e.target.selectionStart;
-        let originalLength = e.target.value.length;
-
-        let rutFormateado = formatearRut(e.target.value);
-        e.target.value = rutFormateado;
-
-        let newLength = rutFormateado.length;
-        let diff = newLength - originalLength;
-        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-
-        validarIndividualRut();
+$(document).ready(function () {
+    // Vincular el evento submit al formulario
+    $("#registrationForm").on("submit", function (e) {
+        e.preventDefault(); // Evitar recarga de página por defecto
+        procesarEnvio();
     });
 
-    // Event listeners para validaciones en tiempo real (Blur/Input)
-    inputNombre.addEventListener("blur", validarIndividualNombre);
-    inputNombre.addEventListener("input", validarIndividualNombre);
-
-    inputRut.addEventListener("blur", validarIndividualRut);
-
-    inputFecha.addEventListener("blur", validarIndividualFecha);
-    inputFecha.addEventListener("input", validarIndividualFecha);
-
-    inputCv.addEventListener("change", validarIndividualCv);
-
-    inputEmail.addEventListener("blur", validarIndividualEmail);
-    inputEmail.addEventListener("input", validarIndividualEmail);
-
-    selectGenero.addEventListener("change", validarIndividualGenero);
-    selectGenero.addEventListener("blur", validarIndividualGenero);
-
-    // Listeners para los campos nuevos
-    inputTelefono.addEventListener("blur", validarIndividualTelefono);
-    inputTelefono.addEventListener("input", validarIndividualTelefono);
-
-    selectNacionalidad.addEventListener("change", () => {
-        const label = document.getElementById("label_direccion");
-        if (selectNacionalidad.value === "Extranjera") {
-            if (label) label.textContent = "Dirección *";
-        } else {
-            if (label) label.textContent = "Dirección";
-            limpiarEstadoCampo(inputDireccion, "error_direccion");
-        }
-        validarIndividualNacionalidad();
-        validarIndividualDireccion();
-    });
-    selectNacionalidad.addEventListener("blur", () => {
-        validarIndividualNacionalidad();
-        validarIndividualDireccion();
+    // Vincular el evento click al botón de cancelar
+    $("#btnCancelar").on("click", function () {
+        cancelarFormulario();
     });
 
-    inputDireccion.addEventListener("blur", validarIndividualDireccion);
-    inputDireccion.addEventListener("input", validarIndividualDireccion);
-
-    checkTerminos.addEventListener("change", validarIndividualTerminos);
-
-    inputContrasena.addEventListener("blur", validarIndividualContrasena);
-    inputContrasena.addEventListener("input", validarIndividualContrasena);
-
-    inputConfirmContrasena.addEventListener("blur", validarIndividualConfirm);
-    inputConfirmContrasena.addEventListener("input", validarIndividualConfirm);
-
-    // Funciones de validación individual
-    function validarIndividualNombre() {
-        const valor = inputNombre.value.trim();
-        if (valor === "") {
-            marcarError(inputNombre, "error_nombre", "El nombre completo es requerido.");
-            return false;
-        } else if (valor.length < CONFIG_FORMULARIO.nombreMinLargo) {
-            marcarError(inputNombre, "error_nombre", `Debe tener al menos ${CONFIG_FORMULARIO.nombreMinLargo} caracteres.`);
-            return false;
-        }
-        marcarValido(inputNombre, "error_nombre");
-        return true;
-    }
-
-    function validarIndividualRut() {
-        const valor = inputRut.value.trim();
-        if (valor === "") {
-            marcarError(inputRut, "error_rut", "El RUT es requerido.");
-            return false;
-        }
-        if (!validarRutChile(valor)) {
-            marcarError(inputRut, "error_rut", "El RUT ingresado no es válido (ej: 12.345.678-9).");
-            return false;
-        }
-        marcarValido(inputRut, "error_rut");
-        return true;
-    }
-
-    function validarIndividualFecha() {
-        const valor = inputFecha.value.trim();
-        if (valor === "") {
-            marcarError(inputFecha, "error_fecha", "La fecha de nacimiento es requerida.");
-            return false;
-        }
-        
-        const resValidacion = validarFechaNacimientoYEdad(valor);
-        if (!resValidacion.valido) {
-            marcarError(inputFecha, "error_fecha", resValidacion.mensaje);
-            return false;
-        }
-        
-        marcarValido(inputFecha, "error_fecha");
-        return true;
-    }
-
-    function validarIndividualCv() {
-        if (!inputCv.files || inputCv.files.length === 0) {
-            marcarError(inputCv, "error_cv", "El currículum en formato PDF es obligatorio.");
-            return false;
-        }
-        if (!validarCVArchivo(inputCv)) {
-            marcarError(inputCv, "error_cv", "Tipo de archivo no permitido. Solo se acepta .pdf.");
-            return false;
-        }
-        marcarValido(inputCv, "error_cv");
-        return true;
-    }
-
-    function validarIndividualEmail() {
-        const valor = inputEmail.value.trim();
-        if (valor === "") {
-            marcarError(inputEmail, "error_email", "El email es requerido.");
-            return false;
-        }
-        if (!validarEmailRegex(valor)) {
-            marcarError(inputEmail, "error_email", "Formato de email inválido (ej: usuario@servidor.com).");
-            return false;
-        }
-        marcarValido(inputEmail, "error_email");
-        return true;
-    }
-
-    function validarIndividualGenero() {
-        const valor = selectGenero.value;
-        if (valor === "") {
-            marcarError(selectGenero, "error_genero", "Debe seleccionar un género.");
-            return false;
-        }
-        marcarValido(selectGenero, "error_genero");
-        return true;
-    }
-
-    // Validadores de nuevos campos
-    function validarIndividualTelefono() {
-        const valor = inputTelefono.value.trim();
-        if (valor === "") {
-            marcarError(inputTelefono, "error_telefono", "El teléfono de contacto es requerido.");
-            return false;
-        }
-        if (!/^\d{9}$/.test(valor)) {
-            marcarError(inputTelefono, "error_telefono", "El teléfono debe contener exactamente 9 dígitos.");
-            return false;
-        }
-        marcarValido(inputTelefono, "error_telefono");
-        return true;
-    }
-
-    function validarIndividualNacionalidad() {
-        const valor = selectNacionalidad.value;
-        if (valor === "") {
-            marcarError(selectNacionalidad, "error_nacionalidad", "Debe seleccionar su nacionalidad.");
-            return false;
-        }
-        marcarValido(selectNacionalidad, "error_nacionalidad");
-        return true;
-    }
-
-    function validarIndividualDireccion() {
-        const valor = inputDireccion.value.trim();
-        if (selectNacionalidad.value === "Extranjera") {
-            if (valor === "") {
-                marcarError(inputDireccion, "error_direccion", "La dirección residencial es requerida para ciudadanos extranjeros.");
-                return false;
-            }
-            marcarValido(inputDireccion, "error_direccion");
-            return true;
-        } else {
-            limpiarEstadoCampo(inputDireccion, "error_direccion");
-            return true;
-        }
-    }
-
-    function validarIndividualTerminos() {
-        const checked = checkTerminos.checked;
-        if (!checked) {
-            marcarError(checkTerminos, "error_terminos", "Debe aceptar los términos y condiciones.");
-            return false;
-        }
-        marcarValido(checkTerminos, "error_terminos");
-        return true;
-    }
-
-    function validarIndividualContrasena() {
-        const valor = inputContrasena.value;
-        const res = comprobarContrasenaCompleja(valor);
-        if (!res.valido) {
-            marcarError(inputContrasena, "error_contrasena", res.mensaje);
-            if (inputConfirmContrasena.value !== "") {
-                validarIndividualConfirm();
-            }
-            return false;
-        }
-        marcarValido(inputContrasena, "error_contrasena");
-        if (inputConfirmContrasena.value !== "") {
-            validarIndividualConfirm();
-        }
-        return true;
-    }
-
-    function validarIndividualConfirm() {
-        const valorConfirm = inputConfirmContrasena.value;
-        const valorPass = inputContrasena.value;
-        if (valorConfirm === "") {
-            marcarError(inputConfirmContrasena, "error_confirm_contrasena", "Debe repetir la contraseña.");
-            return false;
-        }
-        if (valorConfirm !== valorPass) {
-            marcarError(inputConfirmContrasena, "error_confirm_contrasena", "Las contraseñas no coinciden.");
-            return false;
-        }
-        marcarValido(inputConfirmContrasena, "error_confirm_contrasena");
-        return true;
-    }
-
-    // Envío del Formulario
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
-
-        // Ejecutar todas las validaciones
-        const esNombreValido = validarIndividualNombre();
-        const esRutValido = validarIndividualRut();
-        const esFechaValida = validarIndividualFecha();
-        const esCvValido = validarIndividualCv();
-        const esEmailValido = validarIndividualEmail();
-        const esGeneroValido = validarIndividualGenero();
-        const esTelefonoValido = validarIndividualTelefono();
-        const esNacionalidadValida = validarIndividualNacionalidad();
-        const esDireccionValida = validarIndividualDireccion();
-        const esPassValida = validarIndividualContrasena();
-        const esConfirmValida = validarIndividualConfirm();
-        const esTerminosValido = validarIndividualTerminos();
-
-        if (!esNombreValido || !esRutValido || !esFechaValida || !esCvValido || 
-            !esEmailValido || !esGeneroValido || !esTelefonoValido || !esNacionalidadValida || 
-            !esDireccionValida || !esPassValida || !esConfirmValida || !esTerminosValido) {
-            console.warn("Validación en frontend fallida. Revise los campos en rojo.");
-            return;
-        }
-
-        // Construcción del FormData
-        const formData = new FormData();
-        formData.append("nombre", inputNombre.value.trim());
-        formData.append("run", inputRut.value.trim());
-        formData.append("fechaNacimiento", inputFecha.value.trim());
-        formData.append("correo", inputEmail.value.trim());
-        formData.append("telefono", inputTelefono.value.trim());
-        formData.append("nacionalidad", selectNacionalidad.value);
-        formData.append("genero", selectGenero.value);
-        formData.append("direccion", selectNacionalidad.value === "Extranjera" ? inputDireccion.value.trim() : "");
-        formData.append("contrasena", inputContrasena.value);
-        formData.append("terminosYCond", checkTerminos.checked);
-        formData.append("interes", checkInteres.checked);
-        
-        if (inputCv.files && inputCv.files[0]) {
-            formData.append("curriculum", inputCv.files[0]);
-        }
-
-        // Petición POST al backend
-        fetch("http://localhost:3000/usuarios", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(errData => {
-                    const mensajeError = errData.errores ? errData.errores.join("\n") : "Error al registrar el usuario en el servidor.";
-                    throw new Error(mensajeError);
-                });
-            }
-            return response.json();
-        })
-        .then(resData => {
-            console.log("Servidor responde exitosamente:", resData);
-
-            // Cargar datos en la tabla resumen del Modal
-            const modalBody = document.getElementById("modal_summary_body");
-            modalBody.innerHTML = "";
-
-            const camposMostrar = [
-                { etiqueta: "Nombre Completo", valor: inputNombre.value.trim() },
-                { etiqueta: "RUN", valor: inputRut.value.trim() },
-                { etiqueta: "Fecha de Nacimiento", valor: inputFecha.value.trim() },
-                { etiqueta: "Email", valor: inputEmail.value.trim() },
-                { etiqueta: "Teléfono", valor: inputTelefono.value.trim() },
-                { etiqueta: "Nacionalidad", valor: selectNacionalidad.value },
-                { etiqueta: "Género", valor: selectGenero.value },
-                { etiqueta: "Dirección", valor: selectNacionalidad.value === "Extranjera" ? inputDireccion.value.trim() : "No requerida" }
-            ];
-
-            camposMostrar.forEach(item => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td class="fw-bold text-secondary">${item.etiqueta}</td>
-                    <td>${item.valor}</td>
-                `;
-                modalBody.appendChild(tr);
-            });
-
-            // Mostrar modal de confirmación
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-            successModal.show();
-
-            // Limpiar campos del formulario tras registro exitoso
-            cancelarFormulario();
-        })
-        .catch(error => {
-            alert("Error en el registro:\n" + error.message);
-        });
-    });
+    // Vincular eventos de entrada (input) para validaciones en tiempo real
+    configurarValidacionEnTiempoReal();
 });
 
-// --- FUNCIONES AUXILIARES ---
+/**
+ * Procesa el envío del formulario realizando las validaciones.
+ * Si todos los campos son correctos, simula el envío y redirige a index.html.
+ */
+function procesarEnvio() {
+    // 1. Obtener valores de los campos del formulario
+    const valores = {
+        nombre: $("#nombre").val(),
+        usuario: $("#usuario").val(),
+        fechaIngreso: $("#fechaIngreso").val(),
+        email: $("#email").val(),
+        sitioWeb: $("#sitioWeb").val()
+    };
 
-// Validador de RUT chileno con dígito verificador módulo 11
-function validarRutChile(rutCompleto) {
-    let valor = rutCompleto.replace(/\./g, '').replace(/-/g, '').trim().toUpperCase();
-    if (valor.length < 2) return false;
+    // 2. Realizar las validaciones individuales (Uso de Objeto para almacenar resultados)
+    const validaciones = {
+        nombre: validarNombre(valores.nombre),
+        usuario: validarUsuario(valores.usuario),
+        fechaIngreso: validarFecha(valores.fechaIngreso),
+        email: validarEmail(valores.email),
+        sitioWeb: validarUrl(valores.sitioWeb)
+    };
 
-    let cuerpo = valor.slice(0, -1);
-    let dvIngresado = valor.slice(-1);
+    let formularioValido = true;
+    const camposConError = []; // Uso de Arreglo para identificar campos con error
 
-    if (!/^\d+$/.test(cuerpo)) return false;
+    // 3. Modificar el DOM según los resultados de las validaciones
+    $.each(validaciones, function (campo, resultado) {
+        const $input = $(`#${campo}`);
+        const $errorDiv = $(`#${campo}-error`);
 
-    let suma = 0;
-    let multiplicador = 2;
-
-    for (let i = cuerpo.length - 1; i >= 0; i--) {
-        suma += parseInt(cuerpo[i], 10) * multiplicador;
-        multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-    }
-
-    let residuo = suma % 11;
-    let dvEsperado = 11 - residuo;
-
-    if (dvEsperado === 11) {
-        dvEsperado = '0';
-    } else if (dvEsperado === 10) {
-        dvEsperado = 'K';
-    } else {
-        dvEsperado = dvEsperado.toString();
-    }
-
-    return dvIngresado === dvEsperado;
-}
-
-// Formatea el RUT de manera dinámica a medida que se ingresa (XX.XXX.XXX-X)
-function formatearRut(rut) {
-    let valor = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-    if (valor.length === 0) return '';
-    if (valor.length === 1) return valor;
-
-    let cuerpo = valor.slice(0, -1);
-    let dv = valor.slice(-1);
-
-    let cuerpoFormateado = '';
-    let count = 0;
-    for (let i = cuerpo.length - 1; i >= 0; i--) {
-        cuerpoFormateado = cuerpo[i] + cuerpoFormateado;
-        count++;
-        if (count === 3 && i > 0) {
-            cuerpoFormateado = '.' + cuerpoFormateado;
-            count = 0;
+        if (!resultado.valido) {
+            formularioValido = false;
+            camposConError.push(campo);
+            
+            // Modificación del DOM para mostrar error
+            $input.addClass("is-invalid").removeClass("is-valid");
+            $errorDiv.html(`<i class="bi bi-exclamation-circle-fill me-1"></i> ${resultado.mensaje}`).show();
+        } else {
+            // Modificación del DOM para mostrar éxito
+            $input.addClass("is-valid").removeClass("is-invalid");
+            $errorDiv.hide();
         }
+    });
+
+    // 4. Si el formulario es totalmente válido, proceder a la simulación de envío
+    if (formularioValido) {
+        // Estructura de objeto con la información validada del usuario
+        const usuarioRegistrado = {
+            nombre: valores.nombre.trim(),
+            usuario: valores.usuario.trim(),
+            fechaIngresoFormatted: validaciones.fechaIngreso.fechaFormateada,
+            email: valores.email.trim(),
+            sitioWeb: valores.sitioWeb.trim() || "No especificado"
+        };
+
+        mostrarAlertaExito(usuarioRegistrado);
+    } else {
+        // Alerta de error en el formulario (Personalizado con colores cyberpunk)
+        Swal.fire({
+            icon: 'error',
+            title: '<span style="color: #ff5b5b;">Campos Inválidos</span>',
+            html: 'Por favor, revise los errores marcados en rojo en el formulario.',
+            background: '#1b1330',
+            confirmButtonColor: '#ea39b8',
+            customClass: {
+                popup: 'border border-danger'
+            }
+        });
     }
-    return cuerpoFormateado + '-' + dv;
 }
 
-// Validador de formato de correo
-function validarEmailRegex(email) {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email);
+/**
+ * Valida que el nombre cumpla con los requisitos.
+ * @param {string} nombre - Valor del campo nombre
+ * @returns {Object} Resultado de la validación
+ */
+function validarNombre(nombre) {
+    if (!nombre || nombre.trim() === "") {
+        return { valido: false, mensaje: "El nombre completo es obligatorio." };
+    }
+    if (nombre.trim().length < 3) {
+        return { valido: false, mensaje: "El nombre debe tener al menos 3 caracteres." };
+    }
+    return { valido: true };
 }
 
-// Validar Fecha de Nacimiento (dd/MM/yyyy) y mayoría de edad (18 años o más)
-function validarFechaNacimientoYEdad(fechaStr) {
-    const reg = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = fechaStr.match(reg);
-    if (!match) {
-        return { valido: false, mensaje: "Formato dd/MM/yyyy incorrecto." };
+/**
+ * Valida que el usuario cumpla con los requisitos.
+ * @param {string} usuario - Valor del campo usuario
+ * @returns {Object} Resultado de la validación
+ */
+function validarUsuario(usuario) {
+    if (!usuario || usuario.trim() === "") {
+        return { valido: false, mensaje: "El nombre de usuario es obligatorio." };
+    }
+    if (usuario.includes(" ")) {
+        return { valido: false, mensaje: "El nombre de usuario no puede contener espacios." };
+    }
+    if (usuario.trim().length < 4) {
+        return { valido: false, mensaje: "El usuario debe tener al menos 4 caracteres." };
+    }
+    return { valido: true };
+}
+
+/**
+ * Valida que la fecha tenga el formato requerido y exista en el calendario.
+ * @param {string} fecha - Valor devuelto por el input date (formato yyyy-mm-dd)
+ * @returns {Object} Resultado de la validación
+ */
+function validarFecha(fecha) {
+    if (!fecha) {
+        return { valido: false, mensaje: "La fecha de ingreso es obligatoria." };
     }
 
-    const dia = parseInt(match[1], 10);
-    const mes = parseInt(match[2], 10);
-    const anio = parseInt(match[3], 10);
-
-    if (mes < 1 || mes > 12) {
-        return { valido: false, mensaje: "Mes inválido." };
-    }
-    if (anio < 1900 || anio > new Date().getFullYear()) {
-        return { valido: false, mensaje: "Año fuera de rango." };
+    // Dividir la fecha obtenida del input date (yyyy-mm-dd)
+    const partesDate = fecha.split('-');
+    if (partesDate.length !== 3) {
+        return { valido: false, mensaje: "Formato de fecha inválido." };
     }
 
-    const esBisiesto = (anio % 4 === 0 && (anio % 100 !== 0 || anio % 400 === 0));
-    const diasPorMes = [31, esBisiesto ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const anio = parseInt(partesDate[0], 10);
+    const mes = parseInt(partesDate[1], 10);
+    const dia = parseInt(partesDate[2], 10);
 
-    if (dia < 1 || dia > diasPorMes[mes - 1]) {
-        return { valido: false, mensaje: "Día inválido para ese mes." };
+    // Formatear a dd/mm/yyyy para realizar la validación del formato solicitado
+    const diaStr = dia < 10 ? '0' + dia : dia;
+    const mesStr = mes < 10 ? '0' + mes : mes;
+    const fechaFormateada = `${diaStr}/${mesStr}/${anio}`;
+
+    // Expresión regular para validar el formato de fecha "dd/mm/yyyy"
+    const regexFormato = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+    if (!regexFormato.test(fechaFormateada)) {
+        return { valido: false, mensaje: "El formato de fecha debe ser dd/mm/yyyy." };
     }
 
-    const fechaIngresada = new Date(anio, mes - 1, dia);
+    // Validar existencia real de la fecha (ej. evitar 30 de febrero)
+    const dateObj = new Date(anio, mes - 1, dia);
+    if (dateObj.getFullYear() !== anio || dateObj.getMonth() !== (mes - 1) || dateObj.getDate() !== dia) {
+        return { valido: false, mensaje: "La fecha ingresada no existe en el calendario." };
+    }
+
+    // Validación: no permitir fechas futuras
     const hoy = new Date();
-
     hoy.setHours(0, 0, 0, 0);
-    if (fechaIngresada > hoy) {
-        return { valido: false, mensaje: "La fecha de nacimiento no puede ser futura." };
+    if (dateObj > hoy) {
+        return { valido: false, mensaje: "La fecha de ingreso no puede ser futura." };
     }
 
-    // Cálculo y validación de la mayoría de edad (18 años)
-    let edad = hoy.getFullYear() - fechaIngresada.getFullYear();
-    const difMeses = hoy.getMonth() - fechaIngresada.getMonth();
-    if (difMeses < 0 || (difMeses === 0 && hoy.getDate() < fechaIngresada.getDate())) {
-        edad--;
+    return { 
+        valido: true, 
+        fechaFormateada: fechaFormateada 
+    };
+}
+
+/**
+ * Valida el correo electrónico usando una expresión regular.
+ * @param {string} email - Valor del campo email
+ * @returns {Object} Resultado de la validación
+ */
+function validarEmail(email) {
+    if (!email || email.trim() === "") {
+        return { valido: false, mensaje: "El correo electrónico es obligatorio." };
+    }
+    
+    // Expresión regular estricta para el formato usuario@servidor.dom
+    const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!regexEmail.test(email)) {
+        return { valido: false, mensaje: "El correo debe tener un formato válido (ej: usuario@servidor.dom)." };
+    }
+    
+    return { valido: true };
+}
+
+/**
+ * Valida la URL del sitio web si es que se ha ingresado algo.
+ * @param {string} url - Valor del campo de sitio web
+ * @returns {Object} Resultado de la validación
+ */
+function validarUrl(url) {
+    if (!url || url.trim() === "") {
+        return { valido: true }; // Es un campo opcional
     }
 
-    if (edad < 18) {
-        return { valido: false, mensaje: "Debe ser mayor de edad para registrarse (18 años o más)." };
+    // Expresión regular para validar formato URL estándar
+    const regexUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    if (!regexUrl.test(url)) {
+        return { valido: false, mensaje: "Ingrese un formato de URL válido." };
     }
 
     return { valido: true };
 }
 
-// Validar extensión de CV
-function validarCVArchivo(inputCv) {
-    if (!inputCv.files || inputCv.files.length === 0) return true;
-    const file = inputCv.files[0];
-    const extension = file.name.split('.').pop().toLowerCase();
-
-    return EXTENSIONES_PERMITIDAS.includes(extension);
-}
-
-// Validar complejidad de contraseña
-function comprobarContrasenaCompleja(pass) {
-    if (pass === "") {
-        return { valido: false, mensaje: "La contraseña es requerida." };
-    }
-    if (pass.length < CONFIG_FORMULARIO.passMinLargo || pass.length > CONFIG_FORMULARIO.passMaxLargo) {
-        return { valido: false, mensaje: `Debe tener entre ${CONFIG_FORMULARIO.passMinLargo} y ${CONFIG_FORMULARIO.passMaxLargo} caracteres.` };
-    }
-    if (!/[A-Z]/.test(pass)) {
-        return { valido: false, mensaje: "Debe contener al menos una letra mayúscula." };
-    }
-    if (!/[a-z]/.test(pass)) {
-        return { valido: false, mensaje: "Debe contener al menos una letra minúscula." };
-    }
-    if (!/[0-9]/.test(pass)) {
-        return { valido: false, mensaje: "Debe contener al menos un número." };
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\|;'\/]/.test(pass)) {
-        return { valido: false, mensaje: "Debe contener al menos un carácter especial (ej: !@#$*)." };
-    }
-    return { valido: true };
-}
-
-// Funciones UI para marcar estados de validación en Bootstrap
-function marcarError(inputElement, errorDivId, mensaje) {
-    inputElement.classList.add("is-invalid");
-    inputElement.classList.remove("is-valid");
-    const errDiv = document.getElementById(errorDivId);
-    if (errDiv) {
-        errDiv.textContent = mensaje;
-    }
-}
-
-function marcarValido(inputElement, errorDivId) {
-    inputElement.classList.remove("is-invalid");
-    inputElement.classList.add("is-valid");
-    const errDiv = document.getElementById(errorDivId);
-    if (errDiv) {
-        errDiv.textContent = "";
-    }
-}
-
-function limpiarEstadoCampo(inputElement, errorDivId) {
-    inputElement.classList.remove("is-invalid");
-    inputElement.classList.remove("is-valid");
-    const errDiv = document.getElementById(errorDivId);
-    if (errDiv) {
-        errDiv.textContent = "";
-    }
-}
-
-// Limpiar formulario y resetear estados
+/**
+ * Limpia todos los campos del formulario y remueve los estilos de validación del DOM.
+ */
 function cancelarFormulario() {
-    const form = document.getElementById("registrationForm");
-    if (form) {
-        form.reset();
+    // Resetear formulario nativo
+    $("#registrationForm")[0].reset();
 
-        const campos = form.querySelectorAll(".form-control, .form-select, .form-check-input");
-        campos.forEach(campo => {
-            campo.classList.remove("is-invalid");
-            campo.classList.remove("is-valid");
-        });
+    // Limpiar clases CSS de Bootstrap
+    $(".form-control").removeClass("is-invalid is-valid");
+    $(".invalid-feedback").hide();
 
-        const divsError = form.querySelectorAll(".invalid-feedback");
-        divsError.forEach(div => {
-            div.textContent = "";
-        });
+    // Notificación del reset
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: 'Formulario restablecido',
+        background: '#1b1330',
+        color: '#ffffff',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+    });
+}
+
+/**
+ * Muestra el cuadro de diálogo modal premium para simular el envío de datos.
+ * @param {Object} usuario - Datos validados del usuario a enviar
+ */
+function mostrarAlertaExito(usuario) {
+    Swal.fire({
+        icon: 'success',
+        title: '<span style="color: #32fbe2;">¡Registro Exitoso!</span>',
+        background: '#1b1330',
+        color: '#ffffff',
+        html: `
+            <div class="text-start mt-3 p-3 rounded" style="background-color: rgba(26, 9, 51, 0.8); border: 1.5px solid #ea39b8;">
+                <p class="mb-2"><strong>Nombre:</strong> ${usuario.nombre}</p>
+                <p class="mb-2"><strong>Usuario:</strong> @${usuario.usuario}</p>
+                <p class="mb-2"><strong>Fecha Ingreso:</strong> ${usuario.fechaIngresoFormatted}</p>
+                <p class="mb-2"><strong>Email:</strong> ${usuario.email}</p>
+                <p class="mb-0"><strong>Sitio Web:</strong> ${usuario.sitioWeb}</p>
+            </div>
+            <div class="mt-4 text-center">
+                <span class="badge px-3 py-2 text-dark bg-warning">
+                    <i class="bi bi-info-circle-fill me-1"></i> Simulación local sin base de datos activa
+                </span>
+            </div>
+        `,
+        confirmButtonText: '<i class="bi bi-house-door-fill me-1"></i> Aceptar y Volver al Inicio',
+        confirmButtonColor: '#ea39b8',
+        allowOutsideClick: false,
+        scrollbarPadding: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $("#registrationForm")[0].reset();
+            window.location.href = "index.html";
+        }
+    });
+}
+
+/**
+ * Agrega oyentes en tiempo real para validar los campos mientras el usuario escribe.
+ */
+function configurarValidacionEnTiempoReal() {
+    $("#nombre").on("input", function () {
+        const val = $(this).val();
+        const res = validarNombre(val);
+        toggleClasesValidacion($(this), $("#nombre-error"), res);
+    });
+
+    $("#usuario").on("input", function () {
+        const val = $(this).val();
+        const res = validarUsuario(val);
+        toggleClasesValidacion($(this), $("#usuario-error"), res);
+    });
+
+    $("#fechaIngreso").on("change input", function () {
+        const val = $(this).val();
+        const res = validarFecha(val);
+        toggleClasesValidacion($(this), $("#fechaIngreso-error"), res);
+    });
+
+    $("#email").on("input", function () {
+        const val = $(this).val();
+        const res = validarEmail(val);
+        toggleClasesValidacion($(this), $("#email-error"), res);
+    });
+
+    $("#sitioWeb").on("input", function () {
+        const val = $(this).val();
+        const res = validarUrl(val);
+        toggleClasesValidacion($(this), $("#sitioWeb-error"), res);
+    });
+}
+
+/**
+ * Función auxiliar para alternar las clases CSS de validación e inyectar el error en el DOM.
+ * @param {jQuery} $input - Elemento del input
+ * @param {jQuery} $errorDiv - Contenedor del mensaje de error
+ * @param {Object} validacion - Objeto con el resultado del validador
+ */
+function toggleClasesValidacion($input, $errorDiv, validacion) {
+    if (!validacion.valido) {
+        $input.addClass("is-invalid").removeClass("is-valid");
+        $errorDiv.html(`<i class="bi bi-exclamation-circle-fill me-1"></i> ${validacion.mensaje}`).show();
+    } else {
+        $input.addClass("is-valid").removeClass("is-invalid");
+        $errorDiv.hide();
     }
 }

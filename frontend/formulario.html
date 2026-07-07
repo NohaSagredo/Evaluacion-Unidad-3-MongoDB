@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Registro</title>
+    <title>Registro de Nuevo Usuario - Evaluación Unidad 3</title>
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <!-- SweetAlert2 CSS (Estilos premium para alertas) -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #1a0933;
@@ -52,14 +54,14 @@
             color: #32fbe2;
             margin-bottom: 6px;
         }
-        .form-control, .form-select {
+        .form-control {
             background-color: rgba(26, 9, 51, 0.6);
             color: #ffffff;
             border: 1.5px solid rgba(234, 57, 184, 0.4);
             border-radius: 6px;
             transition: all 0.2s ease-in-out;
         }
-        .form-control:focus, .form-select:focus {
+        .form-control:focus {
             background-color: rgba(26, 9, 51, 0.9);
             color: #ffffff;
             border-color: #32fbe2;
@@ -72,6 +74,7 @@
             color: #ff5b5b;
             font-size: 0.85em;
             font-weight: 500;
+            margin-top: 0.35rem;
         }
         .form-title {
             font-size: 1.4rem;
@@ -87,52 +90,27 @@
             border-color: #34c759 !important;
             box-shadow: 0 0 10px rgba(52, 199, 89, 0.5) !important;
         }
-        .modal-content {
-            background-color: #1b1330;
-            border: 2px solid #ea39b8;
-            color: #ffffff;
-        }
-        .modal-header {
-            background-color: #120b24;
-            border-bottom: 2px solid #ea39b8;
-        }
-        .table {
-            color: #ffffff !important;
-            border-color: rgba(234, 57, 184, 0.2) !important;
-        }
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(255, 255, 255, 0.03) !important;
-            color: #ffffff !important;
-        }
-        .table-light {
-            background-color: rgba(18, 11, 36, 0.8) !important;
-            color: #32fbe2 !important;
-        }
-        .modal-footer {
-            border-top: 1px solid rgba(234, 57, 184, 0.2);
+        .input-group-text {
+            background-color: rgba(18, 11, 36, 0.95);
+            color: #32fbe2;
+            border: 1.5px solid rgba(234, 57, 184, 0.4);
         }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="./formulario.html">Evaluación Unidad 3</a>
+            <a class="navbar-brand" href="./index.html">Evaluación Unidad 3</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" id="nav_cv" href="./curriculum_vitae.html">Curriculum Vitae</a>
+                        <a class="nav-link" id="nav_usuarios" href="./index.html">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" id="nav_registro" aria-current="page" href="./formulario.html">Registro</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="nav_usuarios" href="./usuarios.html">Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="nav_dispositivos" href="./dispositivos.html">Dispositivos</a>
                     </li>
                 </ul>
             </div>
@@ -141,7 +119,7 @@
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-8">
                 <div class="form-card">
                     <div class="form-card-header">
                         <div class="browser-dots">
@@ -149,116 +127,68 @@
                             <span class="dot dot-yellow"></span>
                             <span class="dot dot-green"></span>
                         </div>
-                        <h2 class="form-title">Formulario de Registro</h2>
+                        <h2 class="form-title">Registro de Nuevo Usuario</h2>
                         <div style="width: 50px;"></div>
                     </div>
                     <div class="form-card-body">
                         <form id="registrationForm" novalidate>
-                            <!-- Fila 1: Nombre, RUT, Fecha -->
-                            <div class="row mb-4">
-                                <div class="col-md-4">
-                                    <label for="input_nombre" class="form-label">Nombre Completo *</label>
-                                    <input type="text" class="form-control" id="input_nombre" placeholder="Ingrese nombre completo" required>
-                                    <div class="invalid-feedback" id="error_nombre">El nombre completo es requerido.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="input_rut" class="form-label">Rut *</label>
-                                    <input type="text" class="form-control" id="input_rut" placeholder="Ingrese Rut" required>
-                                    <div class="invalid-feedback" id="error_rut">El Rut es requerido.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="input_fecha" class="form-label">Fecha de Nacimiento *</label>
-                                    <input type="text" class="form-control" id="input_fecha" placeholder="dd/MM/yyyy" required>
-                                    <div class="invalid-feedback" id="error_fecha">Formato inválido (dd/MM/yyyy).</div>
+                            
+                            <!-- Campo: Nombre -->
+                            <div class="mb-4">
+                                <label for="nombre" class="form-label">Nombre Completo *</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Ingrese nombre completo" required>
+                                <div class="invalid-feedback" id="nombre-error">
+                                    El nombre completo es requerido (mín. 3 caracteres).
                                 </div>
                             </div>
 
-                            <!-- Fila 2: Curriculum, Email, Género -->
-                            <div class="row mb-4">
-                                <div class="col-md-4">
-                                    <label for="input_cv" class="form-label">Curriculum Vitae *</label>
-                                    <input type="file" class="form-control" id="input_cv" accept=".pdf" required>
-                                    <div class="invalid-feedback" id="error_cv">El currículum en formato PDF es obligatorio.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="input_email" class="form-label">Email *</label>
-                                    <input type="email" class="form-control" id="input_email" placeholder="Correo electrónico" required>
-                                    <div class="invalid-feedback" id="error_email">El email es requerido.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="select_genero" class="form-label">Género *</label>
-                                    <select class="form-select" id="select_genero" required>
-                                        <option value="" selected>Seleccione...</option>
-                                        <option value="Masculino">Masculino</option>
-                                        <option value="Femenino">Femenino</option>
-                                        <option value="Otro">Otro</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="error_genero">Seleccione una opción.</div>
-                                </div>
-                            </div>
-
-                            <!-- Fila 3: Teléfono, Nacionalidad, Dirección -->
-                            <div class="row mb-4">
-                                <div class="col-md-4">
-                                    <label for="input_telefono" class="form-label">Teléfono *</label>
-                                    <input type="text" class="form-control" id="input_telefono" placeholder="Ej: 987654321" required>
-                                    <div class="invalid-feedback" id="error_telefono">El teléfono es requerido.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="select_nacionalidad" class="form-label">Nacionalidad *</label>
-                                    <select class="form-select" id="select_nacionalidad" required>
-                                        <option value="" selected>Seleccione...</option>
-                                        <option value="Chilena">Chilena</option>
-                                        <option value="Extranjera">Extranjera</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="error_nacionalidad">Seleccione su nacionalidad.</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="input_direccion" class="form-label" id="label_direccion">Dirección</label>
-                                    <input type="text" class="form-control" id="input_direccion" placeholder="Calle, número, comuna">
-                                    <div class="invalid-feedback" id="error_direccion">La dirección es obligatoria si la nacionalidad es extranjera.</div>
-                                </div>
-                            </div>
-
-                            <!-- Fila 4: Contraseña, Confirmación -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <label for="input_contrasena" class="form-label">Contraseña *</label>
-                                    <input type="password" class="form-control" id="input_contrasena" placeholder="********" required>
-                                    <div class="invalid-feedback" id="error_contrasena">La contraseña es requerida.</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="input_confirm_contrasena" class="form-label">Repetir Contraseña *</label>
-                                    <input type="password" class="form-control" id="input_confirm_contrasena" placeholder="********" required>
-                                    <div class="invalid-feedback" id="error_confirm_contrasena">Debe repetir la contraseña.</div>
-                                </div>
-                            </div>
-
-                            <!-- Fila 5: Suscripción y Términos -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="form-check form-switch mt-2">
-                                        <input class="form-check-input" type="checkbox" id="check_interes">
-                                        <label class="form-check-label text-white" for="check_interes">Deseo recibir información y novedades</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" type="checkbox" id="check_terminos" required>
-                                        <label class="form-check-label text-white" for="check_terminos">
-                                            Acepto los términos y condiciones de registro *
-                                        </label>
-                                        <div class="invalid-feedback" id="error_terminos">Debe aceptar los términos y condiciones.</div>
+                            <!-- Campo: Usuario -->
+                            <div class="mb-4">
+                                <label for="usuario" class="form-label">Nombre de Usuario *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    <input type="text" class="form-control" id="usuario" placeholder="usuario" required>
+                                    <div class="invalid-feedback" id="usuario-error">
+                                        El nombre de usuario es requerido y no puede contener espacios.
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
+                            <!-- Campo: Fecha Ingreso -->
+                            <div class="mb-4">
+                                <label for="fechaIngreso" class="form-label">Fecha de Ingreso *</label>
+                                <input type="date" class="form-control" id="fechaIngreso" required>
+                                <div class="invalid-feedback" id="fechaIngreso-error">
+                                    La fecha es obligatoria y debe tener formato válido dd/mm/yyyy.
+                                </div>
+                            </div>
+
+                            <!-- Campo: Email -->
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" placeholder="usuario@servidor.dom" required>
+                                <div class="invalid-feedback" id="email-error">
+                                    El correo es requerido y debe tener formato usuario@servidor.dom.
+                                </div>
+                            </div>
+
+                            <!-- Campo: Sitio Web -->
+                            <div class="mb-4">
+                                <label for="sitioWeb" class="form-label">Sitio Web (Opcional)</label>
+                                <input type="url" class="form-control" id="sitioWeb" placeholder="https://ejemplo.com">
+                                <div class="invalid-feedback" id="sitioWeb-error">
+                                    Ingrese un formato de URL válido.
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="row mt-5">
                                 <div class="col-12 d-flex justify-content-end">
-                                    <button type="button" class="btn btn-secondary me-3 px-4" id="btn_cancelar" onclick="cancelarFormulario()">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary px-4" id="btn_guardar">Guardar</button>
+                                    <button type="button" class="btn btn-secondary me-3 px-4" id="btnCancelar">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary px-4" id="btnEnviar">Enviar Registro</button>
                                 </div>
                             </div>
+
                         </form>
                     </div>
                 </div>
@@ -266,39 +196,15 @@
         </div>
     </div>
 
-    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="successModalLabel">
-                        <i class="bi bi-check-circle-fill me-2"></i>¡Envío de datos correcto!
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="text-muted mb-4">Los datos del formulario han sido validados con éxito. A continuación se presenta el resumen de los datos registrados:</p>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 35%;">Campo</th>
-                                    <th>Valor Registrado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modal_summary_body">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">Aceptar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    
+    <!-- SweetAlert2 (Mensajes de confirmación premium) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Lógica de validación -->
     <script src="./js/procesar_form.js"></script>
 </body>
 </html>
